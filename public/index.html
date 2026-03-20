@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kling Video Studio - AI Video Generation</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-video"></i>
+                <span>Kling Video Studio</span>
+            </div>
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="text-to-video">
+                    <i class="fas fa-font"></i>
+                    <span>Text to Video</span>
+                </button>
+                <button class="nav-tab" data-tab="image-to-video">
+                    <i class="fas fa-image"></i>
+                    <span>Image to Video</span>
+                </button>
+                <button class="nav-tab" data-tab="motion-control">
+                    <i class="fas fa-running"></i>
+                    <span>Motion Control</span>
+                </button>
+                <button class="nav-tab" data-tab="avatar">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Avatar</span>
+                </button>
+            </nav>
+            <div class="header-actions">
+                <button class="btn-icon" title="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Text to Video Section -->
+        <section id="text-to-video" class="tab-content active">
+            <div class="section-header">
+                <h1><i class="fas fa-magic"></i> Text to Video</h1>
+                <p>Genera videos cinematográficos a partir de descripciones de texto</p>
+            </div>
+            
+            <div class="content-grid">
+                <div class="input-panel">
+                    <div class="form-group">
+                        <label for="t2v-prompt">
+                            <i class="fas fa-pen"></i> Prompt
+                            <span class="required">*</span>
+                        </label>
+                        <textarea id="t2v-prompt" rows="4" placeholder="Describe el video que quieres generar... Ej: Un astronauta caminando por la luna con la Tierra de fondo, iluminación cinematográfica, movimiento suave"></textarea>
+                        <div class="char-count"><span id="t2v-prompt-count">0</span> caracteres</div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="t2v-duration">
+                                <i class="fas fa-clock"></i> Duración
+                            </label>
+                            <select id="t2v-duration">
+                                <option value="5">5 segundos</option>
+                                <option value="10">10 segundos</option>
+                                <option value="15">15 segundos</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="t2v-aspect">
+                                <i class="fas fa-expand"></i> Aspect Ratio
+                            </label>
+                            <select id="t2v-aspect">
+                                <option value="16:9">16:9 (Horizontal)</option>
+                                <option value="9:16">9:16 (Vertical)</option>
+                                <option value="1:1">1:1 (Cuadrado)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-music"></i> Generar Audio
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="t2v-audio" checked>
+                                <span class="slider"></span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="advanced-options">
+                        <button class="btn-link" onclick="toggleAdvanced('t2v-advanced')">
+                            <i class="fas fa-sliders-h"></i> Opciones Avanzadas
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div id="t2v-advanced" class="advanced-content hidden">
+                            <div class="form-group">
+                                <label for="t2v-negative">
+                                    <i class="fas fa-ban"></i> Negative Prompt
+                                </label>
+                                <input type="text" id="t2v-negative" value="blur, distort, and low quality" placeholder="Qué evitar en el video...">
+                            </div>
+                            <div class="form-group">
+                                <label for="t2v-cfg">
+                                    <i class="fas fa-sliders-h"></i> CFG Scale: <span id="t2v-cfg-value">0.5</span>
+                                </label>
+                                <input type="range" id="t2v-cfg" min="0" max="1" step="0.1" value="0.5">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary btn-generate" onclick="generateTextToVideo()">
+                        <i class="fas fa-wand-magic-sparkles"></i> Generar Video
+                    </button>
+                </div>
+
+                <div class="output-panel">
+                    <div class="preview-container">
+                        <div id="t2v-preview" class="preview-placeholder">
+                            <i class="fas fa-film"></i>
+                            <span>El video generado aparecerá aquí</span>
+                        </div>
+                        <div id="t2v-loading" class="loading-overlay hidden">
+                            <div class="spinner"></div>
+                            <p>Generando video...</p>
+                            <small>Esto puede tardar varios minutos</small>
+                        </div>
+                    </div>
+                    <div id="t2v-result" class="result-actions hidden">
+                        <button class="btn-secondary" onclick="downloadVideo('t2v')">
+                            <i class="fas fa-download"></i> Descargar
+                        </button>
+                        <button class="btn-secondary" onclick="copyVideoUrl('t2v')">
+                            <i class="fas fa-link"></i> Copiar URL
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Image to Video Section -->
+        <section id="image-to-video" class="tab-content">
+            <div class="section-header">
+                <h1><i class="fas fa-image"></i> Image to Video</h1>
+                <p>Transforma imágenes estáticas en videos dinámicos con movimiento</p>
+            </div>
+            
+            <div class="content-grid">
+                <div class="input-panel">
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-upload"></i> Imagen de Inicio
+                            <span class="required">*</span>
+                        </label>
+                        <div class="upload-area" id="i2v-upload-area" onclick="document.getElementById('i2v-image').click()">
+                            <input type="file" id="i2v-image" accept="image/*" hidden onchange="handleImageUpload(this, 'i2v')">
+                            <div class="upload-content">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Arrastra una imagen o haz clic para seleccionar</p>
+                                <small>PNG, JPG, WebP (máx. 10MB)</small>
+                            </div>
+                            <img id="i2v-preview-img" class="preview-img hidden">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="i2v-prompt">
+                            <i class="fas fa-pen"></i> Prompt de Movimiento
+                        </label>
+                        <textarea id="i2v-prompt" rows="3" placeholder="Describe el movimiento... Ej: La persona sonríe suavemente y mueve la cabeza"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="i2v-duration">
+                                <i class="fas fa-clock"></i> Duración
+                            </label>
+                            <select id="i2v-duration">
+                                <option value="5">5 segundos</option>
+                                <option value="10">10 segundos</option>
+                                <option value="15">15 segundos</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-music"></i> Audio
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="i2v-audio" checked>
+                                    <span class="slider"></span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary btn-generate" onclick="generateImageToVideo()">
+                        <i class="fas fa-wand-magic-sparkles"></i> Generar Video
+                    </button>
+                </div>
+
+                <div class="output-panel">
+                    <div class="preview-container">
+                        <div id="i2v-preview" class="preview-placeholder">
+                            <i class="fas fa-film"></i>
+                            <span>El video generado aparecerá aquí</span>
+                        </div>
+                        <div id="i2v-loading" class="loading-overlay hidden">
+                            <div class="spinner"></div>
+                            <p>Generando video...</p>
+                        </div>
+                    </div>
+                    <div id="i2v-result" class="result-actions hidden">
+                        <button class="btn-secondary" onclick="downloadVideo('i2v')">
+                            <i class="fas fa-download"></i> Descargar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Motion Control Section -->
+        <section id="motion-control" class="tab-content">
+            <div class="section-header">
+                <h1><i class="fas fa-running"></i> Motion Control</h1>
+                <p>Transfiere movimientos de un video de referencia a cualquier personaje</p>
+            </div>
+            
+            <div class="content-grid">
+                <div class="input-panel">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-image"></i> Imagen del Personaje
+                                <span class="required">*</span>
+                            </label>
+                            <div class="upload-area small" onclick="document.getElementById('mc-image').click()">
+                                <input type="file" id="mc-image" accept="image/*" hidden onchange="handleImageUpload(this, 'mc-img')">
+                                <div class="upload-content">
+                                    <i class="fas fa-user"></i>
+                                    <span>Subir imagen</span>
+                                </div>
+                                <img id="mc-img-preview" class="preview-img hidden">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-video"></i> Video de Referencia
+                                <span class="required">*</span>
+                            </label>
+                            <div class="upload-area small" onclick="document.getElementById('mc-video').click()">
+                                <input type="file" id="mc-video" accept="video/*" hidden onchange="handleVideoUpload(this, 'mc-vid')">
+                                <div class="upload-content">
+                                    <i class="fas fa-film"></i>
+                                    <span>Subir video</span>
+                                </div>
+                                <video id="mc-vid-preview" class="preview-vid hidden" controls></video>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mc-prompt">
+                            <i class="fas fa-pen"></i> Prompt (Opcional)
+                        </label>
+                        <input type="text" id="mc-prompt" placeholder="Describe la escena o acción adicional...">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="mc-orientation">
+                                <i class="fas fa-arrows-alt"></i> Orientación
+                            </label>
+                            <select id="mc-orientation">
+                                <option value="image">Imagen - Movimientos de cámara</option>
+                                <option value="video">Video - Movimientos complejos</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-volume-up"></i> Sonido Original
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="mc-sound" checked>
+                                    <span class="slider"></span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary btn-generate" onclick="generateMotionControl()">
+                        <i class="fas fa-wand-magic-sparkles"></i> Generar Video
+                    </button>
+                </div>
+
+                <div class="output-panel">
+                    <div class="preview-container">
+                        <div id="mc-preview" class="preview-placeholder">
+                            <i class="fas fa-film"></i>
+                            <span>El video generado aparecerá aquí</span>
+                        </div>
+                        <div id="mc-loading" class="loading-overlay hidden">
+                            <div class="spinner"></div>
+                            <p>Aplicando motion control...</p>
+                        </div>
+                    </div>
+                    <div id="mc-result" class="result-actions hidden">
+                        <button class="btn-secondary" onclick="downloadVideo('mc')">
+                            <i class="fas fa-download"></i> Descargar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Avatar Section -->
+        <section id="avatar" class="tab-content">
+            <div class="section-header">
+                <h1><i class="fas fa-user-circle"></i> Avatar Lip Sync</h1>
+                <p>Sincronización labial para videos de avatar con audio o texto</p>
+            </div>
+
+            <div class="sub-tabs">
+                <button class="sub-tab active" data-subtab="lipsync-text">
+                    <i class="fas fa-keyboard"></i> Texto a Voz
+                </button>
+                <button class="sub-tab" data-subtab="lipsync-audio">
+                    <i class="fas fa-microphone"></i> Audio
+                </button>
+            </div>
+
+            <!-- Lip Sync Text -->
+            <div id="lipsync-text" class="subtab-content active">
+                <div class="content-grid">
+                    <div class="input-panel">
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-video"></i> Video del Avatar
+                                <span class="required">*</span>
+                            </label>
+                            <div class="upload-area" onclick="document.getElementById('lst-video').click()">
+                                <input type="file" id="lst-video" accept="video/*" hidden onchange="handleVideoUpload(this, 'lst-vid')">
+                                <div class="upload-content">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Sube un video con el avatar</p>
+                                    <small>MP4, MOV (2-60s, máx. 100MB)</small>
+                                </div>
+                                <video id="lst-vid-preview" class="preview-vid hidden" controls></video>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lst-text">
+                                <i class="fas fa-comment"></i> Texto a Sincronizar
+                                <span class="required">*</span>
+                            </label>
+                            <textarea id="lst-text" rows="3" maxlength="120" placeholder="Escribe el texto que dirá el avatar (máx. 120 caracteres)"></textarea>
+                            <div class="char-count"><span id="lst-text-count">0</span>/120</div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="lst-voice">
+                                    <i class="fas fa-user-voice"></i> Voz
+                                </label>
+                                <select id="lst-voice">
+                                    <option value="commercial_lady_en_f-v1">Mujer (EN) - Comercial</option>
+                                    <option value="reader_en_m-v1">Hombre (EN) - Narrador</option>
+                                    <option value="uk_man2">Hombre (UK) - Inglés Británico</option>
+                                    <option value="uk_boy1">Niño (UK)</option>
+                                    <option value="cartoon-girl-01">Caricatura - Niña</option>
+                                    <option value="cartoon-boy-07">Caricatura - Niño</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="lst-speed">
+                                    <i class="fas fa-tachometer-alt"></i> Velocidad: <span id="lst-speed-value">1.0</span>x
+                                </label>
+                                <input type="range" id="lst-speed" min="0.5" max="2" step="0.1" value="1">
+                            </div>
+                        </div>
+
+                        <button class="btn-primary btn-generate" onclick="generateLipSyncText()">
+                            <i class="fas fa-wand-magic-sparkles"></i> Generar Lip Sync
+                        </button>
+                    </div>
+
+                    <div class="output-panel">
+                        <div class="preview-container">
+                            <div id="lst-preview" class="preview-placeholder">
+                                <i class="fas fa-film"></i>
+                                <span>El video generado aparecerá aquí</span>
+                            </div>
+                            <div id="lst-loading" class="loading-overlay hidden">
+                                <div class="spinner"></div>
+                                <p>Sincronizando labios...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lip Sync Audio -->
+            <div id="lipsync-audio" class="subtab-content">
+                <div class="content-grid">
+                    <div class="input-panel">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-video"></i> Video
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="upload-area small" onclick="document.getElementById('lsa-video').click()">
+                                    <input type="file" id="lsa-video" accept="video/*" hidden onchange="handleVideoUpload(this, 'lsa-vid')">
+                                    <div class="upload-content">
+                                        <i class="fas fa-film"></i>
+                                        <span>Subir video</span>
+                                    </div>
+                                    <video id="lsa-vid-preview" class="preview-vid hidden" controls></video>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <i class="fas fa-music"></i> Audio
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="upload-area small" onclick="document.getElementById('lsa-audio').click()">
+                                    <input type="file" id="lsa-audio" accept="audio/*" hidden onchange="handleAudioUpload(this, 'lsa-aud')">
+                                    <div class="upload-content">
+                                        <i class="fas fa-microphone"></i>
+                                        <span>Subir audio</span>
+                                    </div>
+                                    <audio id="lsa-aud-preview" class="preview-aud hidden" controls></audio>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn-primary btn-generate" onclick="generateLipSyncAudio()">
+                            <i class="fas fa-wand-magic-sparkles"></i> Generar Lip Sync
+                        </button>
+                    </div>
+
+                    <div class="output-panel">
+                        <div class="preview-container">
+                            <div id="lsa-preview" class="preview-placeholder">
+                                <i class="fas fa-film"></i>
+                                <span>El video generado aparecerá aquí</span>
+                            </div>
+                            <div id="lsa-loading" class="loading-overlay hidden">
+                                <div class="spinner"></div>
+                                <p>Sincronizando con audio...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
