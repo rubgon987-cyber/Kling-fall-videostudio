@@ -337,8 +337,29 @@ async function generateVideoWithFormData(prefix, endpoint, formData) {
   const loadingEl = document.getElementById(`${prefix}-loading`);
   const previewEl = document.getElementById(`${prefix}-preview`);
   const resultEl = document.getElementById(`${prefix}-result`);
-  const btnEl = document.querySelector(`#${prefix}`).querySelector('.btn-generate') ||
-                document.querySelector(`#${prefix}`).closest('.tab-content').querySelector('.btn-generate');
+  
+  // Buscar el botón de forma más robusta
+  let btnEl = null;
+  
+  // Intentar varios selectores
+  const selectors = [
+    `#${prefix} .btn-generate`,
+    `button[onclick*="${prefix}"]`,
+    `.btn-generate`
+  ];
+  
+  for (const selector of selectors) {
+    btnEl = document.querySelector(selector);
+    if (btnEl) break;
+  }
+  
+  // Si todavía no encontramos el botón, buscar en el section activo
+  if (!btnEl) {
+    const activeSection = document.querySelector('.tab-content.active');
+    if (activeSection) {
+      btnEl = activeSection.querySelector('.btn-generate');
+    }
+  }
   
   try {
     loadingEl.classList.remove('hidden');
