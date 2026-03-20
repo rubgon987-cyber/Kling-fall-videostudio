@@ -1,8 +1,15 @@
 # Dependencies
 node_modules/
 
-# Environment
+# Environment & Secrets
 .env
+.env.local
+.env.*.local
+*.key
+secrets/
+
+# Private config
+.fal-config
 
 # OS
 .DS_Store

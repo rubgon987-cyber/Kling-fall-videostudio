@@ -8,15 +8,75 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { fal } = require('@fal-ai/client');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configurar fal.ai client
-fal.config({
-  credentials: process.env.FAL_KEY
-});
+// ==================== CONFIGURACIÓN SEGURA DE API KEY ====================
+
+// Ruta para almacenar la API key localmente (fuera del repo)
+const LOCAL_CONFIG_PATH = path.join(__dirname, '.fal-config');
+
+function getApiKey() {
+  // Prioridad de lectura:
+  // 1. Variable de entorno FAL_KEY
+  // 2. Archivo local .fal-config
+  // 3. Archivo .env.local
+  
+  if (process.env.FAL_KEY && process.env.FAL_KEY !== 'your_fal_api_key_here') {
+    return process.env.FAL_KEY;
+  }
+  
+  // Intentar leer de archivo local
+  if (fs.existsSync(LOCAL_CONFIG_PATH)) {
+    try {
+      const config = JSON.parse(fs.readFileSync(LOCAL_CONFIG_PATH, 'utf8'));
+      if (config.apiKey) {
+        return config.apiKey;
+      }
+    } catch (e) {
+      console.warn('Error leyendo configuración local:', e.message);
+    }
+  }
+  
+  // Intentar leer de .env.local
+  const envLocalPath = path.join(__dirname, '.env.local');
+  if (fs.existsSync(envLocalPath)) {
+    try {
+      const envContent = fs.readFileSync(envLocalPath, 'utf8');
+      const match = envContent.match(/FAL_KEY\s*=\s*(.+)/);
+      if (match && match[1]) {
+        return match[1].trim().replace(/['"]/g, '');
+      }
+    } catch (e) {
+      console.warn('Error leyendo .env.local:', e.message);
+    }
+  }
+  
+  return null;
+}
+
+function saveApiKeyLocally(apiKey) {
+  try {
+    fs.writeFileSync(LOCAL_CONFIG_PATH, JSON.stringify({ apiKey }, null, 2));
+    return true;
+  } catch (e) {
+    console.error('Error guardando API key:', e.message);
+    return false;
+  }
+}
+
+// Inicializar fal.ai con la API key
+const apiKey = getApiKey();
+if (apiKey) {
+  fal.config({ credentials: apiKey });
+  console.log('✅ API key de fal.ai configurada');
+} else {
+  console.warn('⚠️  No se encontró API key de fal.ai');
+  console.warn('   Configúrala en Settings o en el archivo .env');
+}
 
 // Middleware
 app.use(cors());
@@ -277,6 +337,45 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
     console.error('Error en upload:', error);
     res.status(500).json({ error: error.message });
   }
+});
+
+// ==================== CONFIGURATION ====================
+app.post('/api/config/api-key', (req, res) => {
+  try {
+    const { apiKey } = req.body;
+    
+    if (!apiKey) {
+      return res.status(400).json({ error: 'API key requerida' });
+    }
+    
+    // Guardar localmente (archivo que no se sube a GitHub)
+    const saved = saveApiKeyLocally(apiKey);
+    
+    if (!saved) {
+      return res.status(500).json({ error: 'Error guardando la API key' });
+    }
+    
+    // Actualizar la configuración de fal.ai en runtime
+    fal.config({ credentials: apiKey });
+    process.env.FAL_KEY = apiKey;
+    
+    res.json({ 
+      success: true, 
+      message: 'API key configurada correctamente',
+      storage: 'local'
+    });
+  } catch (error) {
+    console.error('Error configurando API key:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/config/status', (req, res) => {
+  const hasKey = !!getApiKey();
+  res.json({
+    configured: hasKey,
+    message: hasKey ? 'API key configurada' : 'API key no configurada'
+  });
 });
 
 // ==================== QUEUE STATUS ====================

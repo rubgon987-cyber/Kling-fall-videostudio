@@ -35,7 +35,7 @@
                 </button>
             </nav>
             <div class="header-actions">
-                <button class="btn-icon" title="Settings">
+                <button class="btn-icon" id="settings-btn" title="Settings" onclick="openSettings()">
                     <i class="fas fa-cog"></i>
                 </button>
             </div>
@@ -460,6 +460,62 @@
             </div>
         </section>
     </main>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeSettings()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-cog"></i> Configuración</h2>
+                <button class="btn-icon" onclick="closeSettings()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3><i class="fas fa-key"></i> API Key de fal.ai</h3>
+                    <div class="form-group">
+                        <input type="password" id="settings-fal-key" placeholder="Ingresa tu API key de fal.ai">
+                        <small>Obtén tu API key en <a href="https://fal.ai/dashboard/keys" target="_blank">fal.ai/dashboard/keys</a></small>
+                    </div>
+                    <button class="btn-secondary" onclick="saveApiKey()">
+                        <i class="fas fa-save"></i> Guardar API Key
+                    </button>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fas fa-server"></i> Servidor</h3>
+                    <div class="form-group">
+                        <label>URL del Servidor</label>
+                        <input type="text" id="settings-server-url" value="http://localhost:3000" readonly>
+                    </div>
+                    <div class="status-indicator">
+                        <span class="status-dot" id="server-status"></span>
+                        <span id="server-status-text">Verificando conexión...</span>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fas fa-info-circle"></i> Acerca de</h3>
+                    <div class="about-info">
+                        <p><strong>Kling Video Studio</strong> v1.0.0</p>
+                        <p>Generación de videos con IA usando Kling via fal.ai</p>
+                        <p class="links">
+                            <a href="https://github.com/rubgon987-cyber/Kling-fall-videostudio" target="_blank">
+                                <i class="fab fa-github"></i> GitHub
+                            </a>
+                            <a href="https://fal.ai/models/fal-ai/kling-video" target="_blank">
+                                <i class="fas fa-external-link-alt"></i> Documentación API
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeSettings()">Cerrar</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Toast Notifications -->
     <div id="toast-container"></div>

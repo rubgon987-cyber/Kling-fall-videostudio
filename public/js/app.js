@@ -434,3 +434,91 @@ function formatFileSize(bytes) {
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
+
+// ==================== SETTINGS MODAL ====================
+
+function openSettings() {
+  const modal = document.getElementById('settings-modal');
+  modal.classList.remove('hidden');
+  loadSettings();
+  checkServerStatus();
+}
+
+function closeSettings() {
+  const modal = document.getElementById('settings-modal');
+  modal.classList.add('hidden');
+}
+
+function loadSettings() {
+  // Cargar API key guardada (solo mostrar si existe)
+  const savedKey = localStorage.getItem('fal_api_key');
+  const input = document.getElementById('settings-fal-key');
+  if (savedKey) {
+    input.value = savedKey;
+    input.type = 'password';
+  }
+}
+
+function saveApiKey() {
+  const input = document.getElementById('settings-fal-key');
+  const key = input.value.trim();
+  
+  if (!key) {
+    showToast('Por favor ingresa una API key válida', 'warning');
+    return;
+  }
+  
+  // Guardar en localStorage
+  localStorage.setItem('fal_api_key', key);
+  
+  // También enviar al servidor
+  fetch(`${API_BASE}/config/api-key`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ apiKey: key })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      showToast('API key guardada correctamente', 'success');
+      input.type = 'password';
+    } else {
+      throw new Error(data.error);
+    }
+  })
+  .catch(err => {
+    // Si falla el servidor, al menos se guardó localmente
+    showToast('API key guardada localmente', 'success');
+  });
+}
+
+async function checkServerStatus() {
+  const statusDot = document.getElementById('server-status');
+  const statusText = document.getElementById('server-status-text');
+  
+  try {
+    const response = await fetch(`${API_BASE}/health`, {
+      method: 'GET',
+      timeout: 5000
+    });
+    
+    if (response.ok) {
+      statusDot.classList.remove('error');
+      statusDot.classList.add('connected');
+      statusText.textContent = 'Servidor conectado';
+    } else {
+      throw new Error('Server error');
+    }
+  } catch (error) {
+    statusDot.classList.remove('connected');
+    statusDot.classList.add('error');
+    statusText.textContent = 'Servidor no disponible';
+  }
+}
+
+// Cerrar modal con tecla Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeSettings();
+  }
+});
